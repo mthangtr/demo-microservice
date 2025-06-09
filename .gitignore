@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+
+# Output folders
+dist/
+tmp/
+out/
+
+# Nx cache and workspace logs
+.nx/
+.cache/
+nx-report.json
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
