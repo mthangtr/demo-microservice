@@ -1,20 +1,32 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
-import { ProxyService } from './services/proxy.service';
-import { AuthController } from './controllers/auth.controller';
-import { ProductController } from './controllers/product.controller';
-import { CartController } from './controllers/cart.controller';
-import { JwtAuthMiddleware } from './middlewares/jwt-auth.middleware';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthModule } from './auth/auth.module';
+import { ProductModule } from './product/product.module';
+import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
+import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
+import { HttpConfigService } from './shared/http/http-config.service';
+import jwtConfig from './shared/jwt/jwt.config';
 
 @Module({
-  imports: [HttpModule],
-  controllers: [AuthController, ProductController, CartController],
-  providers: [ProxyService],
+  imports: [
+    ConfigModule.forRoot({ 
+      isGlobal: true, 
+      envFilePath: `.env`,
+      load: [jwtConfig]
+    }),
+    AuthModule,
+    ProductModule,
+    CartModule,
+    OrderModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    HttpConfigService,
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-        .apply(JwtAuthMiddleware)
-        .forRoutes('*');
-  }
-}
+export class AppModule {}
