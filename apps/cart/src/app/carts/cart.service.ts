@@ -5,8 +5,9 @@ import {Cart} from './schemas/cart.schema';
 import {CreateCartDto} from '@shared/dtos/create-cart.dto';
 import {UpdateCartDto} from '@shared/dtos/update-cart.dto';
 import {ClientGrpc} from "@nestjs/microservices";
-import { lastValueFrom } from 'rxjs';
-import { ProductTypes} from "@shared/types/product.interface";
+import {lastValueFrom} from 'rxjs';
+import {ProductTypes} from "@shared/types/product.interface";
+import {logger} from "nx/src/utils/logger";
 
 interface ProductServiceGrpc {
     getProductsByIds(data: { ids: string[] }): any;
@@ -52,12 +53,16 @@ export class CartService {
     }
 
     async getCartWithProducts(userId: string) {
-        const cart = await this.cartModel.findOne({ userId });
+        const cart = await this.cartModel.findOne({userId});
         if (!cart) throw new NotFoundException('Cart not found');
 
         const ids = cart.items.map(item => item.productId);
-        const response = await lastValueFrom(this.productService.getProductsByIds({ ids })) as { products: ProductTypes[] };
+        const response = await lastValueFrom(this.productService.getProductsByIds({ids})) as {
+            products: ProductTypes[]
+        };
         const products = response.products;
+
+        logger.log(products);
 
         const items = cart.items.map(item => {
             const product = products.find(p => p._id === item.productId);

@@ -12,6 +12,11 @@ export class CartController extends BaseProxyController {
     super(cartService);
   }
 
+  @ProxyRoute('items')
+  async proxyGetCartItems(@Req() req: Request, @Res() res: Response) {
+    return this.handleProxy(req, res);
+  }
+
   @ProxyRoute()
   async proxy(@Req() req: Request, @Res() res: Response) {
     return this.handleProxy(req, res);

@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import { Product } from './schemas/product.schema';
 import { CreateProductDto } from '@shared/dtos/create-product.dto';
 import { UpdateProductDto } from '@shared/dtos/update-product.dto';
-import {GrpcMethod} from "@nestjs/microservices";
 
 @Injectable()
 export class ProductService {
@@ -39,9 +38,8 @@ export class ProductService {
         if (!result) throw new NotFoundException('Product not found');
     }
 
-    @GrpcMethod('ProductService', 'GetProductsByIds')
-    async getProductsByIds(data: { ids: string[] }) {
-        const products = await this.productModel.find({ _id: { $in: data.ids } });
+    async getProductsByIds(ids: string[]) {
+        const products = await this.productModel.find({ _id: { $in: ids } }).lean();
         return { products };
     }
 

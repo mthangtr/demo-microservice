@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common'
 import { ProductService } from './product.service';
 import { CreateProductDto } from '@shared//dtos/create-product.dto';
 import { UpdateProductDto } from '@shared//dtos/update-product.dto';
+import {GrpcMethod} from "@nestjs/microservices";
 
 @Controller('products')
 export class ProductController {
@@ -30,5 +31,10 @@ export class ProductController {
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.productService.remove(id);
+    }
+
+    @GrpcMethod('ProductService', 'GetProductsByIds')
+    getProductsByIds(data: { ids: string[] }) {
+        return this.productService.getProductsByIds(data.ids);
     }
 }

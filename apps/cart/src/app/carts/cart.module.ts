@@ -15,7 +15,7 @@ import { join } from 'path';
                 options: {
                     url: 'localhost:50051',
                     package: 'product',
-                    protoPath: join(__dirname, './protos/product.proto'),
+                    protoPath: join(__dirname, '../../../libs/shared/protos/product.proto'),
                 },
             },
         ]),
