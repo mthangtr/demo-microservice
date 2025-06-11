@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { join } from 'path';
+import { CONSUMER_GROUPS } from '@shared/kafka/kafka-topics';
 
 async function bootstrap() {
   dotenv.config();
@@ -20,6 +21,17 @@ async function bootstrap() {
       protoPath: join(__dirname, '../../../libs/shared/protos/product.proto'),
     },
   });
+  
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: { brokers: ['localhost:9092'] },
+      consumer: { 
+        groupId: CONSUMER_GROUPS.PRODUCT,
+        allowAutoTopicCreation: true,
+      },
+    },
+  });
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
 
@@ -27,5 +39,6 @@ async function bootstrap() {
   await app.listen(port);
   Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
   Logger.log(`🚀 gRPC is running on 0.0.0.0:50051`);
+  Logger.log('🚀 Kafka consumer is running');
 }
 void bootstrap();

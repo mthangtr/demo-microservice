@@ -1,4 +1,4 @@
-import {Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {Inject, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import {InjectModel} from '@nestjs/mongoose';
 import {Model} from 'mongoose';
 import {Cart} from './schemas/cart.schema';
@@ -8,6 +8,8 @@ import {ClientGrpc} from "@nestjs/microservices";
 import {lastValueFrom} from 'rxjs';
 import {ProductTypes} from "@shared/types/product.interface";
 import {logger} from "nx/src/utils/logger";
+import {CartEvents} from './cart.events';
+import {CheckoutEvent} from '@shared/types/checkout.interface';
 
 interface ProductServiceGrpc {
     getProductsByIds(data: { ids: string[] }): any;
@@ -16,10 +18,12 @@ interface ProductServiceGrpc {
 @Injectable()
 export class CartService {
     private productService: ProductServiceGrpc;
+    private readonly logger = new Logger(CartService.name);
 
     constructor(
         @InjectModel(Cart.name) private cartModel: Model<Cart>,
-        @Inject('PRODUCT_PACKAGE') private client: ClientGrpc
+        @Inject('PRODUCT_PACKAGE') private client: ClientGrpc,
+        private cartEvents: CartEvents
     ) {
     }
 
@@ -79,6 +83,40 @@ export class CartService {
             userId: cart.userId,
             items,
             totalPrice,
+        };
+    }
+
+    async checkout(cartId: string) {
+        this.logger.log(`Processing checkout for cart: ${cartId}`);
+
+        // Find the cart
+        const cart = await this.cartModel.findById(cartId).exec();
+        if (!cart) throw new NotFoundException('Cart not found');
+
+        // Get cart with products details
+        const cartWithProducts = await this.getCartWithProducts(cart.userId);
+
+        // Create checkout event
+        const checkoutEvent: CheckoutEvent = {
+            cartId: cartId,
+            userId: cart.userId,
+            items: cart.items.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity
+            })),
+            totalPrice: cartWithProducts.totalPrice,
+            timestamp: new Date()
+        };
+
+        // Emit checkout event
+        await this.cartEvents.emitCheckoutEvent(checkoutEvent);
+
+        this.logger.log(`Checkout completed for cart: ${cartId}`);
+
+        return {
+            success: true,
+            message: 'Checkout initiated successfully',
+            orderId: `order-${Date.now()}` // This would be replaced by actual order ID in a real system
         };
     }
 }

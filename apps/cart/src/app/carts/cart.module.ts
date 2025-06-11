@@ -5,6 +5,7 @@ import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { CartEvents } from './cart.events';
 
 @Module({
     imports: [MongooseModule.forFeature([{ name: Cart.name, schema: CartSchema }]),
@@ -18,9 +19,23 @@ import { join } from 'path';
                     protoPath: join(__dirname, '../../../libs/shared/protos/product.proto'),
                 },
             },
+            {
+                name: 'KAFKA_SERVICE',
+                transport: Transport.KAFKA,
+                options: {
+                    client: {
+                        clientId: 'cart-service',
+                        brokers: ['localhost:9092'],
+                    },
+                    producer: {
+                        allowAutoTopicCreation: true,
+                    },
+                },
+            },
+
         ]),
     ],
     controllers: [CartController],
-    providers: [CartService],
+    providers: [CartService, CartEvents],
 })
 export class CartModule {}
