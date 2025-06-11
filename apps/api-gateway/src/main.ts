@@ -12,7 +12,7 @@ import * as express from 'express';
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { 
         logger: new Logger(),
-        bodyParser: true, // Enable built-in body parser
+        bodyParser: true,
     });
     const config = app.get(ConfigService);
 

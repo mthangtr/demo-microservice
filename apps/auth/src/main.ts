@@ -7,13 +7,6 @@ async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule, { bodyParser: true });
 
-  // Enable CORS
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
-
   // Add validation pipe
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
