@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
-import { BaseProxyService } from '../shared/services/base-proxy.service';
+import {BaseProxyService} from "../shared/services";
 
 @Injectable()
 export class OrderService extends BaseProxyService {

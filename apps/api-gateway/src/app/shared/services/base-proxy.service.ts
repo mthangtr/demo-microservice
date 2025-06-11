@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request } from 'express';
 import { firstValueFrom } from 'rxjs';
+import { ProxyResponse } from '../interfaces/proxy-response.interface';
 
 @Injectable()
 export abstract class BaseProxyService {
@@ -14,7 +15,7 @@ export abstract class BaseProxyService {
     this.logger = new Logger(this.constructor.name);
   }
 
-  async forwardRequest(req: Request, path?: string) {
+  async forwardRequest(req: Request, path?: string): Promise<ProxyResponse<any>> {
     try {
       // Prepare the request URL and path
       const targetUrl = this.buildTargetUrl(req, path);
@@ -44,10 +45,22 @@ export abstract class BaseProxyService {
         })
       );
 
+      // Chuyển đổi headers thành định dạng phù hợp
+      const typedHeaders: Record<string, string | string[]> = {};
+      if (response.headers) {
+        Object.entries(response.headers).forEach(([key, value]) => {
+          if (value !== undefined && (typeof value === 'string' || Array.isArray(value))) {
+            typedHeaders[key] = value;
+          } else if (typeof value === 'number') {
+            typedHeaders[key] = String(value);
+          }
+        });
+      }
+
       return {
         status: response.status,
         data: response.data,
-        headers: response.headers
+        headers: typedHeaders
       };
     } catch (error) {
       // Log error at appropriate level
@@ -62,10 +75,22 @@ export abstract class BaseProxyService {
       }
 
       if (error.response) {
+        // Chuyển đổi headers thành định dạng phù hợp
+        const typedHeaders: Record<string, string | string[]> = {};
+        if (error.response.headers) {
+          Object.entries(error.response.headers).forEach(([key, value]) => {
+            if (value !== undefined && (typeof value === 'string' || Array.isArray(value))) {
+              typedHeaders[key] = value;
+            } else if (typeof value === 'number') {
+              typedHeaders[key] = String(value);
+            }
+          });
+        }
+
         return {
           status: error.response.status,
           data: error.response.data,
-          headers: error.response.headers
+          headers: typedHeaders
         };
       } else if (error.request) {
         return {

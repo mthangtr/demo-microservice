@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { BaseProxyService } from '../shared/services/base-proxy.service';
+import {BaseProxyService} from "../shared/services";
 
 @Injectable()
 export class AuthService extends BaseProxyService {
@@ -19,7 +18,5 @@ export class AuthService extends BaseProxyService {
     this.logger.log(`Auth service URL configured as: ${this.baseUrl}`);
   }
 
-  async forwardRequest(req: Request, path: string) {
-    return super.forwardRequest(req, path);
-  }
+  // Phương thức forwardRequest đã được kế thừa từ BaseProxyService
 }

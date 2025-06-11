@@ -1,14 +1,19 @@
-import { Controller, All, Req, Res } from '@nestjs/common';
+import { Controller, Req, Res } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Request, Response } from 'express';
+import {BaseProxyController} from "../shared/controllers";
+import {ProxyRoute} from "../shared/decorators";
 
 @Controller('orders')
-export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+export class OrderController extends BaseProxyController {
+  protected readonly routePrefix = 'orders';
 
-  @All('/*')
+  constructor(private readonly orderService: OrderService) {
+    super(orderService);
+  }
+
+  @ProxyRoute()
   async proxy(@Req() req: Request, @Res() res: Response) {
-    const resp = await this.orderService.forwardRequest(req);
-    res.status(resp.status).send(resp.data);
+    return this.handleProxy(req, res);
   }
 }

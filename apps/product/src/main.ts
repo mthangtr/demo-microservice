@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { Logger } from '@nestjs/common';
+import {Logger, ValidationPipe} from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
@@ -20,6 +20,8 @@ async function bootstrap() {
       protoPath: join(__dirname, './protos/product.proto'),
     },
   });
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
 
   await app.startAllMicroservices();
   await app.listen(port);
