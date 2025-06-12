@@ -5,4 +5,5 @@ export const KAFKA_TOPICS = {
 export const CONSUMER_GROUPS = {
   PRODUCT: 'product-consumer',
   ORDER: 'order-consumer',
+  MAIL: 'mail-consumer',
 };

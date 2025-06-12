@@ -7,10 +7,8 @@ import { SmtpConfigService } from './infrastructure/config/smtp-config.service';
 import { MailKafkaListener } from './infrastructure/kafka/mail-kafka.listener';
 
 @Module({
-  imports: [
-    // KafkaModule will be added here when implemented
-  ],
-  controllers: [MailController],
+  imports: [],
+  controllers: [MailController, MailKafkaListener],
   providers: [
     MailService,
     MailTemplateService,
@@ -19,7 +17,6 @@ import { MailKafkaListener } from './infrastructure/kafka/mail-kafka.listener';
       useClass: NodemailerMailProvider,
     },
     SmtpConfigService,
-    MailKafkaListener, // Placeholder for Kafka integration
   ],
   exports: [MailService],
 })

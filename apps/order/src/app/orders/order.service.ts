@@ -19,7 +19,7 @@ export class OrderService {
         userId: checkoutData.userId,
         cartId: checkoutData.cartId,
         items: checkoutData.items.map(item => ({
-          productId: item.productId,
+          productId: item.product._id,
           quantity: item.quantity,
           price: item.price || 0,
           name: item.name || 'Product'

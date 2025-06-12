@@ -100,9 +100,9 @@ export class CartService {
         const checkoutEvent: CheckoutEvent = {
             cartId: cartId,
             userId: cart.userId,
-            items: cart.items.map(item => ({
-                productId: item.productId,
-                quantity: item.quantity
+            items: cartWithProducts.items.map((item, index) => ({
+                product: item.product,
+                quantity: cart.items[index].quantity
             })),
             totalPrice: cartWithProducts.totalPrice,
             timestamp: new Date()

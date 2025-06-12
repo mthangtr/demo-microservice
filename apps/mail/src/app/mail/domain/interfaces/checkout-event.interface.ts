@@ -4,7 +4,7 @@ export interface CheckoutEvent {
   cartId: string;
   userId: string;
   items: Array<{
-    product: ProductTypes
+    product: ProductTypes;
     quantity: number;
   }>;
   totalPrice: number;

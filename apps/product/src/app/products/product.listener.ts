@@ -38,7 +38,7 @@ export class ProductListener {
       this.logger.log(`Processing ${checkoutEvent.items.length} product(s) in checkout`);
       
       // In a real-world application, you would update inventory or perform other product-related operations
-      const productIds = checkoutEvent.items.map(item => item.productId);
+      const productIds = checkoutEvent.items.map(item => item.product._id); // Sửa từ item.productId thành item.product._id
       const products = await this.productService.getProductsByIds(productIds);
       
       this.logger.log(`Products processed: ${products.products.length}`);
