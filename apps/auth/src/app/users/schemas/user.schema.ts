@@ -11,7 +11,7 @@ export class User extends Document {
     password: string;
 
     @Prop({ default: 'user' })
-    role: 'user' | 'admin';
+    role: 'customer' | 'admin';
 
     @Prop({ default: 0 })
     balance: number;

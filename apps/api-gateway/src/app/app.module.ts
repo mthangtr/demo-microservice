@@ -5,9 +5,10 @@ import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
-import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
-import { HttpConfigService } from './shared/http/http-config.service';
+import { JwtAuthGuard } from './shared';
+import { HttpConfigService } from './shared/http';
 import jwtConfig from './shared/jwt/jwt.config';
+import { RolesGuard } from 'libs/shared/src/auth/roles.guard';
 
 @Module({
   imports: [
@@ -25,6 +26,10 @@ import jwtConfig from './shared/jwt/jwt.config';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
     HttpConfigService,
   ],
