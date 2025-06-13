@@ -1,9 +1,9 @@
 import { Controller, Req, Res } from '@nestjs/common';
-import { AuthProxyService } from './auth.service';
+import { AuthProxyService } from './auth-proxy.service';
 import { Public } from '../shared';
 import { Request, Response } from 'express';
-import {BaseProxyController} from "../shared/controllers";
-import {ProxyRoute} from "../shared/decorators";
+import {BaseProxyController} from "../shared";
+import {ProxyRoute} from "../shared";
 
 
 @Controller('auth')

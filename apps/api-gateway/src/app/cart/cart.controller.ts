@@ -1,8 +1,8 @@
 import {Controller, Req, Res} from '@nestjs/common';
-import {CartProxyService} from './cart.service';
+import {CartProxyService} from './cart-proxy.service';
 import {Request, Response} from 'express';
-import {BaseProxyController} from "../shared/controllers";
-import {ProxyRoute} from "../shared/decorators";
+import {BaseProxyController} from "../shared";
+import {ProxyRoute} from "../shared";
 
 @Controller('carts')
 export class CartController extends BaseProxyController {

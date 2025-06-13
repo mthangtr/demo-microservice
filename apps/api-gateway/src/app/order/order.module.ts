@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { OrderController } from './order.controller';
-import { OrderProxyService } from './order.service';
+import { OrderProxyService } from './order-proxy.service';
 import { ProxyModule } from '../shared/proxy.module';
 
 @Module({
