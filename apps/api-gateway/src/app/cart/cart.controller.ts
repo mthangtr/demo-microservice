@@ -1,5 +1,5 @@
 import {Controller, Req, Res} from '@nestjs/common';
-import {CartService} from './cart.service';
+import {CartProxyService} from './cart.service';
 import {Request, Response} from 'express';
 import {BaseProxyController} from "../shared/controllers";
 import {ProxyRoute} from "../shared/decorators";
@@ -8,8 +8,8 @@ import {ProxyRoute} from "../shared/decorators";
 export class CartController extends BaseProxyController {
     protected readonly routePrefix = 'carts';
 
-    constructor(private readonly cartService: CartService) {
-        super(cartService);
+    constructor(private readonly cartProxyService: CartProxyService) {
+        super(cartProxyService);
     }
 
     @ProxyRoute('items')

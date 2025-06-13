@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
-import {BaseProxyService} from "../shared/services";
+import {BaseProxyService} from "../shared";
 
 @Injectable()
-export class OrderService extends BaseProxyService {
-  protected readonly serviceType = 'order';
+export class OrderProxyService extends BaseProxyService {
   protected readonly baseUrl: string;
   protected readonly pathPrefix = '/orders';
 
@@ -14,11 +12,7 @@ export class OrderService extends BaseProxyService {
     protected readonly httpService: HttpService,
     private configService: ConfigService
   ) {
-    super(httpService);
+    super(httpService, 'order');
     this.baseUrl = this.configService.get<string>('ORDER_SERVICE_URL', '');
-  }
-
-  async forwardRequest(req: Request) {
-    return super.forwardRequest(req);
   }
 }

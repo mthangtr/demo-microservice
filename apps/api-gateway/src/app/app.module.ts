@@ -5,10 +5,11 @@ import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
-import { JwtAuthGuard } from './shared';
+import {JwtAuthGuard} from './shared';
 import { HttpConfigService } from './shared/http';
 import jwtConfig from './shared/jwt/jwt.config';
 import { RolesGuard } from 'libs/shared/src/auth/roles.guard';
+import {ProxyModule} from "./shared/proxy.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RolesGuard } from 'libs/shared/src/auth/roles.guard';
     ProductModule,
     CartModule,
     OrderModule,
+      ProxyModule,
   ],
   providers: [
     {
@@ -33,5 +35,6 @@ import { RolesGuard } from 'libs/shared/src/auth/roles.guard';
     },
     HttpConfigService,
   ],
+
 })
 export class AppModule {}

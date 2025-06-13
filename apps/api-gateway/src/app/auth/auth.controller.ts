@@ -1,5 +1,5 @@
 import { Controller, Req, Res } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthProxyService } from './auth.service';
 import { Public } from '../shared';
 import { Request, Response } from 'express';
 import {BaseProxyController} from "../shared/controllers";
@@ -11,8 +11,8 @@ import {ProxyRoute} from "../shared/decorators";
 export class AuthController extends BaseProxyController {
     protected readonly routePrefix = 'auth';
 
-    constructor(private readonly authService: AuthService) {
-        super(authService);
+    constructor(private readonly authProxyService: AuthProxyService) {
+        super(authProxyService);
     }
 
     @ProxyRoute()

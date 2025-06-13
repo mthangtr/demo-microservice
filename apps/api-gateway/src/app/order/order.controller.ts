@@ -1,5 +1,5 @@
 import { Controller, Req, Res } from '@nestjs/common';
-import { OrderService } from './order.service';
+import { OrderProxyService } from './order.service';
 import { Request, Response } from 'express';
 import {BaseProxyController} from "../shared/controllers";
 import {ProxyRoute} from "../shared/decorators";
@@ -8,8 +8,8 @@ import {ProxyRoute} from "../shared/decorators";
 export class OrderController extends BaseProxyController {
   protected readonly routePrefix = 'orders';
 
-  constructor(private readonly orderService: OrderService) {
-    super(orderService);
+  constructor(private readonly orderProxyService: OrderProxyService) {
+    super(orderProxyService);
   }
 
   @ProxyRoute()
