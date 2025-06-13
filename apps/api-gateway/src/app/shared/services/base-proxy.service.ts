@@ -11,6 +11,9 @@ export abstract class BaseProxyService {
     protected abstract readonly baseUrl: string;
     protected abstract readonly pathPrefix: string;
     protected readonly circuitBreaker: CircuitBreakerService;
+    
+    // Pre-compile headers filter
+    private excludeHeaders: Set<string>;
 
     protected constructor(
         protected readonly httpService: HttpService,
@@ -19,78 +22,41 @@ export abstract class BaseProxyService {
     ) {
         this.logger = new Logger(this.constructor.name);
         this.circuitBreaker = new CircuitBreakerService(this.serviceType, circuitBreakerConfig);
+        
+        // Pre-compile headers filter
+        this.excludeHeaders = new Set(['host', 'connection', 'content-length', 'transfer-encoding']);
     }
 
     async forwardRequest(req: Request, path?: string): Promise<ProxyResponse<any>> {
-        try {
-            // Sử dụng Circuit Breaker để bảo vệ request
             return await this.circuitBreaker.execute(async () => {
                 return await this.makeRequest(req, path);
             });
-        } catch (error) {
-            // Circuit Breaker sẽ throw error nếu circuit OPEN
-            if (error.message.includes('Circuit Breaker OPEN')) {
-                this.logger.warn(`Request blocked by Circuit Breaker for ${this.serviceType}`);
-                return {
-                    status: 503,
-                    data: {
-                        message: `${this.serviceType} service is temporarily unavailable`,
-                        error: 'Circuit breaker is open',
-                        circuitBreakerMetrics: this.circuitBreaker.getMetrics()
-                    }
-                };
-            }
-            throw error;
-        }
     }
 
-
     async makeRequest(req: Request, path?: string): Promise<ProxyResponse<any>> {
+        const targetUrl = this.buildTargetUrl(req, path);
+        const filteredHeaders = this.filterHeaders(req.headers);
+
+        if (req['user'] && !req['_userDataString']) {
+            req['_userDataString'] = JSON.stringify(req['user']);
+        }
+        if (req['_userDataString']) {
+            filteredHeaders['X-User-Data'] = req['_userDataString'];
+        }
+
         try {
-            // Prepare the request URL and path
-            const targetUrl = this.buildTargetUrl(req, path);
-
-            // Filter headers and add user data
-            const filteredHeaders = this.filterHeaders(req.headers);
-            if (req['user']) {
-                filteredHeaders['X-User-Data'] = JSON.stringify(req['user']);
-            }
-
-            // Only log in non-production environments or for significant requests
-            if (process.env.NODE_ENV !== 'production') {
-                this.logger.log(`Forwarding ${this.serviceType} request: ${req.method} ${targetUrl}`);
-            }
-
-            // Forward the request
             const response = await firstValueFrom(
                 this.httpService.request({
                     method: req.method as any,
                     url: targetUrl,
                     data: req.body,
-                    timeout: 30000, // 30 seconds timeout
-                    maxBodyLength: 50 * 1024 * 1024, // 50MB
-                    maxContentLength: 50 * 1024 * 1024, // 50MB
+                    timeout: 30000,
                     headers: filteredHeaders,
-                    validateStatus: () => true, // Don't throw on any status code
+                    validateStatus: () => true,
                 })
             );
 
-            // Chuyển đổi headers thành định dạng phù hợp
-            const typedHeaders: Record<string, string | string[]> = {};
-            if (response.headers) {
-                Object.entries(response.headers).forEach(([key, value]) => {
-                    if (value !== undefined && (typeof value === 'string' || Array.isArray(value))) {
-                        typedHeaders[key] = value;
-                    } else if (typeof value === 'number') {
-                        typedHeaders[key] = String(value);
-                    }
-                });
-            }
-
-            const isSuccess = response.status >= 200 && response.status < 500; // 5xx là server error, cần trigger circuit breaker
-
-            if (!isSuccess) {
-                // Throw error để Circuit Breaker biết đây là failure
+            if (response.status >= 500) {
                 const error = new Error(`Service returned ${response.status}`);
                 error['response'] = response;
                 throw error;
@@ -99,40 +65,12 @@ export abstract class BaseProxyService {
             return {
                 status: response.status,
                 data: response.data,
-                headers: typedHeaders
+                headers: response.headers
             };
-        } catch (error) {
-            // Log error at appropriate level
-            this.logger.error(`${this.serviceType} service error: ${error.message}`);
-
-            // Handle specific error cases
-            if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
-                return {
-                    status: 503,
-                    data: {message: `${this.serviceType} service is unavailable`, error: error.message},
-                };
-            }
-
-            if (error.response) {
-                // Chuyển đổi headers thành định dạng phù hợp
-                const typedHeaders: Record<string, string | string[]> = {};
-                if (error.response.headers) {
-                    Object.entries(error.response.headers).forEach(([key, value]) => {
-                        if (value !== undefined && (typeof value === 'string' || Array.isArray(value))) {
-                            typedHeaders[key] = value;
-                        } else if (typeof value === 'number') {
-                            typedHeaders[key] = String(value);
-                        }
-                    });
-                }
-
-                return {
-                    status: error.response.status,
-                    data: error.response.data,
-                    headers: typedHeaders
-                };
-            }
-            throw error;
+        } catch (err) {
+            // ✅ Rất quan trọng: throw lại để circuit breaker bắt được
+            this.logger.warn(`Request to ${targetUrl} failed: ${err.message}`);
+            throw err;
         }
     }
 
@@ -156,14 +94,13 @@ export abstract class BaseProxyService {
 
     protected filterHeaders(headers: any): Record<string, string | string[]> {
         const filteredHeaders: Record<string, string | string[]> = {};
-        const excludeHeaders = ['host', 'connection', 'content-length', 'transfer-encoding'];
-
-        for (const [key, value] of Object.entries(headers)) {
-            if (!excludeHeaders.includes(key.toLowerCase())) {
-                filteredHeaders[key] = value as string | string[];
+        
+        for (const key in headers) {
+            if (!this.excludeHeaders.has(key.toLowerCase())) {
+                filteredHeaders[key] = headers[key];
             }
         }
-
+        
         return filteredHeaders;
     }
 

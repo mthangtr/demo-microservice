@@ -9,7 +9,7 @@ export interface ProxyResponse<T = any> {
   data: T;
 
   /** Response headers */
-  headers?: Record<string, string | string[]>;
+  headers?: any;
 }
 
 /**

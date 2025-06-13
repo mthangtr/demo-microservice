@@ -31,6 +31,7 @@ export class CircuitBreakerService implements ICircuitBreaker {
 
     async execute<T>(operation: () => Promise<T>): Promise<T> {
         // Kiểm tra trạng thái circuit trước khi thực thi
+        this.logger.debug(`Circuit breaker checking state for ${this.serviceName}`);
         if (this.state === CircuitState.OPEN) {
             // Nếu open -> chặn all request
             // Kiểm tra xem đã đến thời gian thử lại chưa
@@ -96,6 +97,7 @@ export class CircuitBreakerService implements ICircuitBreaker {
             // nên phải check lớn hơn successThreshold = 3 thì mới coi là service khoẻ lại thật
             // không còn là do ăn may
             if (this.successCount >= this.config.successThreshold) {
+                this.logger.log(`Circuit breaker CLOSED for ${this.serviceName}. Success count: ${this.successCount}`);
                 this.moveToClosed();
             }
         } else if (this.state === CircuitState.CLOSED) {
@@ -103,6 +105,7 @@ export class CircuitBreakerService implements ICircuitBreaker {
             // và các request thông qua onSuccess nghĩa là thành công
             // -> không tính lần fail cũ nữa nên phải reset lại
             this.failureCount = 0;
+            this.logger.log(`Circuit breaker remains CLOSED for ${this.serviceName}. Success count: ${this.successCount}`);
         }
     }
 
@@ -118,11 +121,17 @@ export class CircuitBreakerService implements ICircuitBreaker {
         // -> nếu failureCount lớn hơn failureThreshold cho phép
         // -> chuyển trạng thái sang OPEN -> đóng all request lại
         if (this.state === CircuitState.CLOSED && this.failureCount >= this.config.failureThreshold) {
+            this.logger.warn(
+                `Circuit breaker OPENED for ${this.serviceName}. Failure count: ${this.failureCount}/${this.config.failureThreshold}`
+            );
             this.moveToOpen();
         } else if (this.state === CircuitState.HALF_OPEN) {
             // HALF_OPEN để kiểm tra service
             // Nếu fail trong HALF_OPEN -> nghĩa là service chưa hồi phục
             // quay lại OPEN để đóng all request
+            this.logger.warn(
+                `Circuit breaker OPENED for ${this.serviceName} during HALF_OPEN. Failure count: ${this.failureCount}/${this.config.failureThreshold}`
+            );
             this.moveToOpen();
         }
     }

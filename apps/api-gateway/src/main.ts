@@ -10,8 +10,8 @@ import {ConfigService} from "@nestjs/config";
 import * as express from 'express';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule, { 
-        logger: new Logger(),
+    const app = await NestFactory.create(AppModule, {
+        logger: ['log', 'debug', 'warn', 'error', 'verbose'],
         bodyParser: true,
     });
     const config = app.get(ConfigService);
